@@ -1,8 +1,8 @@
 
-Plugin Name: RequestLister
+WordPress Plugin Name: RequestLister
 
 ## Description ##
- A simple plugin to collect / display information from users
+ A simple WordPress plugin to collect / display information from users
  It can capture multiple fields including name and email, save to a text file, and display the list of names.
  Intentioannly stores information on a text file in a comma separated file to keep it simple.
  All data is stored inthe \data\ subdirectory
@@ -36,20 +36,23 @@ Via Shortcut on Page/POst
 [35rl_form fields="field1,field2,field3" data_file="filename.txt"]
 
 
-== Screenshots ==
+### Screenshots ###
 
+Coming Soon
 
-== Potentia improvements / Wish List == 
+### Potentia improvements / Wish List ###
 - Email entry with Subject: <something> Request to predefined email
 - Settingss Page to add Predefined email and other fields for the desiter form
 
 
-== Changelog ==
-= 1.2.2 (2025-02-25): =
--  Fixed some things: Display emails only to admins / Add Emai
-= 1.2.0 (2025-02-24): =
--  Added Date and time on entry  Changed display tables / data structure changed
-= 1.1.9 (2025-02-22): =
-- Base to start tracking changes
+### Changelog ###
+## 1.2.2 (2025-02-25): ##
+*  Fixed some things: Display emails only to admins / Add Emai
+
+## 1.2.0 (2025-02-24): ##
+* Added Date and time on entry  Changed display tables / data structure changed
+
+## 1.1.9 (2025-02-22): ##
+* Base to start tracking changes
 
 
