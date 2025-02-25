@@ -1,7 +1,7 @@
 
 Plugin Name: RequestLister
 
-## Description
+## Description ##
  A simple plugin to collect / display information from users
  It can capture multiple fields including name and email, save to a text file, and display the list of names.
  Intentioannly stores information on a text file in a comma separated file to keep it simple.
@@ -9,13 +9,29 @@ Plugin Name: RequestLister
 
  Tested up to: 6.7.2 Stable tag: 2.1.4 Requires PHP: 8.1 License: GPLv2 or later
  
- ## Use Cases:
+ ## Use Cases: ##
 
 
- ## Installation
+ ## Installation ##
 
+### Using the WordPress Dashboard ###
+
+1. Navigate to the 'Add New' in the plugins dashboard
+2. Search for 'UserRequestLister'
+3. Click 'Install Now'
+4. Activate the plugin on the Plugin dashboard
+
+### Installing Manually ###
+
+Install the plugin manually  and activate it via WordPress's plugin settings page.
+
+  1. `cd wp-content/plugins`
+  2. `git clone https://github.com/jorper98/requestlister`
+  3. `cd requestlister`
+  4. Activate the plugin in Wordpress' Dashboard > Plugins > Installed Plugins (Look for RequestLister)
+  
  
- ## Usage:   
+ ## Usage:   ##
 Via Shortcut on Page/POst
 [35rl_form fields="field1,field2,field3" data_file="filename.txt"]
 
