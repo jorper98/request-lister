@@ -1,19 +1,15 @@
-<?php
+
+ <?php
+
 /**
  * Plugin Name: RequestLister
  * Description: A simple plugin to capture multiple fields including name and email, save to a text file, and display the list of names.
- * Version: 1.2.0
- * Author: Jorge Pereira
- * 
- */
-
- /*
- ChangeLog:
-1.2.0 -  Added Date and time on entry  Changed display tables / data structure changed
+ * Version: 1.2.2
+ * Author: Jorge Pereira */
 
 
 
- */
+
 function sanitize_input($input) {
     return sanitize_text_field($input); // Uses WordPress's built-in function
 }
@@ -54,6 +50,7 @@ function display_35rl_form($atts) {
     $old_values = array();
     $new_values = array();
     $date_time = date('Y-m-d H:i:s'); // Get current date and time
+    $is_admin = current_user_can('manage_options');
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['email'])) {
         $email = sanitize_email($_POST['email']);
@@ -103,8 +100,11 @@ function display_35rl_form($atts) {
             $output .= '<label for="' . $field . '">' . ucfirst($field) . ':</label>';
             $output .= '<input type="text" id="' . $field . '" name="' . $field . '" required><br>';
         }
+        
         $output .= '<label for="email">Your email:</label>';
         $output .= '<input type="email" id="email" name="email" required><br>';
+        
+        
         $output .= '<input type="submit" value="Submit">';
         $output .= '</form>';
     }
@@ -139,7 +139,7 @@ function display_35rl_form($atts) {
             foreach ($fields as $field) {
                 $output .= '<th>' . ucfirst(trim($field)) . '</th>';
             }
-            if (current_user_can('manage_options')) {
+            if ($is_admin) {
                 $output .= '<th>Email</th>';
             }
             $output .= '</tr>';
@@ -147,14 +147,17 @@ function display_35rl_form($atts) {
                 $output .= '<tr>';
                 $output .= '<td>' . esc_html(end($entry)) . '</td>'; // Display date and time
                 foreach ($entry as $key => $value) {
-                    if ($key !== array_key_last($entry) && $key !== count($entry) - 1 || current_user_can('manage_options')) {
+                    if ($key !== array_key_last($entry) && $key !== count($entry) - 2 && $key < count($fields)) {
+                        $output .= '<td>' . esc_html($value) . '</td>';
+                    } elseif ($key === count($entry) - 2 && $is_admin) {
+                        // This is the email field - only display for admins
                         $output .= '<td>' . esc_html($value) . '</td>';
                     }
                 }
                 $output .= '</tr>';
             }
             $output .= '</table>';
-            if (current_user_can('manage_options')) {
+            if ($is_admin) {
                 $output .= '<p>Data file: ' . esc_html($data_file) . '</p>';
             }
         }
