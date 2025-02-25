@@ -2,17 +2,24 @@
 /**
  * Plugin Name: RequestLister
  * Description: A simple plugin to capture multiple fields including name and email, save to a text file, and display the list of names.
- * Version: 1.1.9
+ * Version: 1.2.0
  * Author: Jorge Pereira
+ * 
  */
 
+ /*
+ ChangeLog:
+1.2.0 -  Added Date and time on entry  Changed display tables / data structure changed
+
+
+
+ */
 function sanitize_input($input) {
     return sanitize_text_field($input); // Uses WordPress's built-in function
 }
 
 function save_data_to_file($data_file, $data) {
     $data_folder = dirname($data_file);
-    // Check if the data folder exists, and if not, create it
     if (!file_exists($data_folder)) {
         mkdir($data_folder, 0755, true);
     }
@@ -46,6 +53,7 @@ function display_35rl_form($atts) {
     $updated = false;
     $old_values = array();
     $new_values = array();
+    $date_time = date('Y-m-d H:i:s'); // Get current date and time
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['email'])) {
         $email = sanitize_email($_POST['email']);
@@ -65,19 +73,19 @@ function display_35rl_form($atts) {
                 $data .= $new_values[$field] . ', ';
             }
         }
-        $data .= $email . "\n";
+        $data .= $email . ', ' . $date_time . "\n";
 
         foreach ($lines as $index => $line) {
             $line_data = explode(', ', $line);
-            if (!empty($line) && $line_data[count($line_data) - 1] != $email) {
+            if (!empty($line) && $line_data[count($line_data) - 3] != $email) {
                 $new_lines[] = $line;
-            } elseif ($line_data[count($line_data) - 1] == $email) {
+            } elseif ($line_data[count($line_data) - 3] == $email) {
                 foreach ($fields as $field) {
                     $field = trim($field);
                     $old_values[$field] = $line_data[array_search($field, $fields)];
                 }
                 $old_values['email'] = $email;
-                $new_lines[] = implode(', ', $new_values) . ', ' . $email;
+                $new_lines[] = implode(', ', $new_values) . ', ' . $email . ', ' . $date_time;
                 $updated = true;
             }
         }
@@ -127,6 +135,7 @@ function display_35rl_form($atts) {
             </style>';
             $output .= '<table>';
             $output .= '<tr>';
+            $output .= '<th>Date and Time</th>';
             foreach ($fields as $field) {
                 $output .= '<th>' . ucfirst(trim($field)) . '</th>';
             }
@@ -136,8 +145,9 @@ function display_35rl_form($atts) {
             $output .= '</tr>';
             foreach ($entries as $entry) {
                 $output .= '<tr>';
+                $output .= '<td>' . esc_html(end($entry)) . '</td>'; // Display date and time
                 foreach ($entry as $key => $value) {
-                    if ($key !== array_key_last($entry) || current_user_can('manage_options')) {
+                    if ($key !== array_key_last($entry) && $key !== count($entry) - 1 || current_user_can('manage_options')) {
                         $output .= '<td>' . esc_html($value) . '</td>';
                     }
                 }
