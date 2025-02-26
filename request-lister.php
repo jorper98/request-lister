@@ -1,18 +1,16 @@
- <?php
+<?php
 /*
  * Plugin Name: RequestLister
  * Description: A simple plugin to capture multiple fields including name and email, save to a text file, and display the list of names.
- * Version: 1.2.42  
+ * Version: 1.2.5
  * Author: Jorge Pereira 
  * Author URI:   http://jorgep.com/plugins
  * License:      GPLv2 or later
- * 
- * 
- * 
  */
 
 function sanitize_input($input) {
-    return sanitize_text_field($input); // Uses WordPress's built-in function
+    $input = sanitize_text_field($input); // Uses WordPress's built-in function
+    return str_replace(',', ' ', $input); // Remove commas replace with Blanks
 }
 
 function save_data_to_file($data_file, $data) {
@@ -54,6 +52,12 @@ function display_35rl_form($atts) {
     $is_admin = current_user_can('manage_options');
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['email'])) {
+        // Verify nonce for security
+        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], '35rl_form_nonce')) {
+            $output .= '<p>Security check failed. Please try again.</p>';
+            return $output;
+        }
+
         $email = sanitize_email($_POST['email']);
         if (!is_email($email)) {
             $output .= '<p>Invalid email format. Please try again.</p>';
@@ -105,6 +109,8 @@ function display_35rl_form($atts) {
         $output .= '<label for="email">Your email:</label>';
         $output .= '<input type="email" id="email" name="email" required><br>';
         
+        // Add nonce field for security
+        $output .= wp_nonce_field('35rl_form_nonce', '_wpnonce', true, false);
         
         $output .= '<input type="submit" value="Submit">';
         $output .= '</form>';

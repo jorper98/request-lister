@@ -62,6 +62,14 @@ Install the plugin manually  and activate it via WordPress's plugin settings pag
 
 
 ### Changelog ###
+
+## 1.2.5 (2025-02-26): ##
+* Replace  commas from the user data input. (Do not allow)
+
+
+## 1.2.42 (2025-02-25): ##
+*  renamed the core plugin file 
+
 ## 1.2.2 (2025-02-25): ##
 *  Fixed some things: Display emails only to admins / Add Emai
 
