@@ -63,6 +63,10 @@ Install the plugin manually  and activate it via WordPress's plugin settings pag
 
 ### Changelog ###
 
+## 1.2.6 ##
+* Fixed: Email Index Bugcode assumed email is at a fixed position (count - 3)
+* Fixed: update logic 
+
 ## 1.2.5 (2025-02-26): ##
 * Replace  commas from the user data input. (Do not allow)
 

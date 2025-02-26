@@ -2,7 +2,7 @@
 /*
  * Plugin Name: RequestLister
  * Description: A simple plugin to capture multiple fields including name and email, save to a text file, and display the list of names.
- * Version: 1.2.5
+ * Version: 1.2.6
  * Author: Jorge Pereira 
  * Author URI:   http://jorgep.com/plugins
  * License:      GPLv2 or later
@@ -66,34 +66,61 @@ function display_35rl_form($atts) {
 
         $lines = file_exists($data_file) ? file($data_file, FILE_IGNORE_NEW_LINES) : array();
         $new_lines = array();
-        $data = '';
-
+        
+        // Build the field values for the new/updated entry
         foreach ($fields as $field) {
             $field = trim($field);
             if (isset($_POST[$field])) {
                 $new_values[$field] = sanitize_input($_POST[$field]);
-                $data .= $new_values[$field] . ', ';
             }
         }
-        $data .= $email . ', ' . $date_time . "\n";
 
-        foreach ($lines as $index => $line) {
+        // FIX #4: Only create the data string once and in one place
+        // Build the complete line with fields, email and timestamp
+        $data_parts = array();
+        foreach ($fields as $field) {
+            $field = trim($field);
+            $data_parts[] = isset($new_values[$field]) ? $new_values[$field] : '';
+        }
+        $data_parts[] = $email;
+        $data_parts[] = $date_time;
+        $new_data_line = implode(', ', $data_parts);
+
+        // Process existing data
+        foreach ($lines as $line) {
+            if (empty($line)) {
+                continue;
+            }
+            
             $line_data = explode(', ', $line);
-            if (!empty($line) && $line_data[count($line_data) - 3] != $email) {
-                $new_lines[] = $line;
-            } elseif ($line_data[count($line_data) - 3] == $email) {
-                foreach ($fields as $field) {
+            
+            // FIX #3: Find email position dynamically
+            // The email is always followed by the timestamp (which is always the last element)
+            $email_pos = count($line_data) - 2;
+            
+            if ($email_pos >= 0 && $line_data[$email_pos] == $email) {
+                // Found matching email - update entry
+                // Extract old values for the update message
+                foreach ($fields as $index => $field) {
                     $field = trim($field);
-                    $old_values[$field] = $line_data[array_search($field, $fields)];
+                    // Make sure we don't go out of bounds
+                    if ($index < $email_pos) {
+                        $old_values[$field] = isset($line_data[$index]) ? $line_data[$index] : '';
+                    }
                 }
                 $old_values['email'] = $email;
-                $new_lines[] = implode(', ', $new_values) . ', ' . $email . ', ' . $date_time;
+                
+                $new_lines[] = $new_data_line;
                 $updated = true;
+            } else {
+                // Not matching email - keep the original line
+                $new_lines[] = $line;
             }
         }
 
+        // If not an update, add as new entry
         if (!$updated) {
-            $new_lines[] = $data;
+            $new_lines[] = $new_data_line;
         }
 
         save_data_to_file($data_file, implode("\n", $new_lines));
@@ -151,16 +178,25 @@ function display_35rl_form($atts) {
             }
             $output .= '</tr>';
             foreach ($entries as $entry) {
+                // FIX #3: Find email and timestamp positions dynamically
+                $timestamp_pos = array_key_last($entry);
+                $email_pos = $timestamp_pos - 1;
+                
                 $output .= '<tr>';
-                $output .= '<td>' . esc_html(end($entry)) . '</td>'; // Display date and time
-                foreach ($entry as $key => $value) {
-                    if ($key !== array_key_last($entry) && $key !== count($entry) - 2 && $key < count($fields)) {
-                        $output .= '<td>' . esc_html($value) . '</td>';
-                    } elseif ($key === count($entry) - 2 && $is_admin) {
-                        // This is the email field - only display for admins
-                        $output .= '<td>' . esc_html($value) . '</td>';
+                $output .= '<td>' . esc_html($entry[$timestamp_pos]) . '</td>'; // Display date and time
+                
+                // Display fields
+                foreach ($fields as $key => $field) {
+                    if ($key < count($entry) - 2) { // Exclude email and timestamp
+                        $output .= '<td>' . esc_html($entry[$key]) . '</td>';
                     }
                 }
+                
+                // Display email for admins
+                if ($is_admin && $email_pos >= 0) {
+                    $output .= '<td>' . esc_html($entry[$email_pos]) . '</td>';
+                }
+                
                 $output .= '</tr>';
             }
             $output .= '</table>';
