@@ -10,6 +10,20 @@ WordPress Plugin Name: RequestLister
  Tested up to: 6.7.2 Stable tag: 2.1.4 Requires PHP: 8.1 License: GPLv2 or later
  
  ## Use Cases: ##
+* Volunteer list
+* Party Dishes for gatherings
+* Request a Name Tag
+
+
+
+ ## Usage:   ##
+Via Shortcut on Page/POst
+[35rl_form fields="field1,field2,field3" data_file="filename.txt"]
+
+
+### Screenshots ###
+
+Coming Soon
 
 
  ## Installation ##
@@ -21,26 +35,28 @@ WordPress Plugin Name: RequestLister
 3. Click 'Install Now'
 4. Activate the plugin on the Plugin dashboard
 
+### Download and install Manually ###
+
+Install the plugin manually  and activate it via WordPress's plugin settings page.
+
+  1. Download latest plug in out of https://jorgep.com/wordpress-plugins/requestLister 
+  2.  Navigate to the 'Add New' in the plugins dashboard
+  3. clicl on Upload New
+  4. Activate the plugin in Wordpress' Dashboard > Plugins > Installed Plugins (Look for RequestLister)
+  
+
 ### Installing Manually ###
 
 Install the plugin manually  and activate it via WordPress's plugin settings page.
 
   1. `cd wp-content/plugins`
-  2. `git clone https://github.com/jorper98/requestlister`
+  2. `git clone https://github.com/jorper98/request-lister.git`
   3. `cd requestlister`
   4. Activate the plugin in Wordpress' Dashboard > Plugins > Installed Plugins (Look for RequestLister)
   
  
- ## Usage:   ##
-Via Shortcut on Page/POst
-[35rl_form fields="field1,field2,field3" data_file="filename.txt"]
 
-
-### Screenshots ###
-
-Coming Soon
-
-### Potentia improvements / Wish List ###
+### Potential improvements / Wish List ###
 - Email entry with Subject: <something> Request to predefined email
 - Settingss Page to add Predefined email and other fields for the desiter form
 

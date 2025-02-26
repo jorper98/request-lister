@@ -1,14 +1,15 @@
-
  <?php
-
-/**
+/*
  * Plugin Name: RequestLister
  * Description: A simple plugin to capture multiple fields including name and email, save to a text file, and display the list of names.
- * Version: 1.2.2
- * Author: Jorge Pereira */
-
-
-
+ * Version: 1.2.42  
+ * Author: Jorge Pereira 
+ * Author URI:   http://jorgep.com/plugins
+ * License:      GPLv2 or later
+ * 
+ * 
+ * 
+ */
 
 function sanitize_input($input) {
     return sanitize_text_field($input); // Uses WordPress's built-in function
