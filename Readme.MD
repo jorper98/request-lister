@@ -18,7 +18,11 @@ WordPress Plugin Name: RequestLister
 
  ## Usage:   ##
 Via Shortcut on Page/POst
+Simple:
 [35rl_form fields="field1,field2,field3" data_file="filename.txt"]
+
+field with dropdown Options:
+[35rl_form fields="field1,field2{optA;OptB;OptC},field3" data_file="filename1.txt"]
 
 
 ### Screenshots ###
@@ -62,6 +66,13 @@ Install the plugin manually  and activate it via WordPress's plugin settings pag
 
 
 ### Changelog ###
+
+## 1.5.0 ##
+* Added: Ability to place limited pull-down options for a field 
+-  Note: (this one took a while!) seemed easy but not! 
+* Separated the save data function to allow better management / troubleshooting
+* New Shortcut format: ( Do not use commas or spaces within fields)
+- [35rl_form fields="field1,Field2,field3{Option1,Option2,Option3}, Field4" data_file="sampledatafile.txt"]
 
 ## 1.2.6 ##
 * Fixed: Email Index Bugcode assumed email is at a fixed position (count - 3)

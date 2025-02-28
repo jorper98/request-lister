@@ -2,38 +2,37 @@
 /*
  * Plugin Name: RequestLister
  * Description: A simple plugin to capture multiple fields including name and email, save to a text file, and display the list of names.
- * Version: 1.2.6
- * Author: Jorge Pereira 
- * Author URI:   http://jorgep.com/plugins
- * License:      GPLv2 or later
+ * Version: 1.5.0
+ * Author: Jorge Pereira
+ * Author URI: http://jorgep.com/plugins
+ * License:   GPLv2 or later
  */
 
-function sanitize_input($input) {
-    $input = sanitize_text_field($input); // Uses WordPress's built-in function
-    return str_replace(',', ' ', $input); // Remove commas replace with Blanks
+define('CUSTOM_DEBUG', TRUE); // Set to true to enable custom debugging, false to disable
+// wp_debug_mode(true); // Define if not already defined
+  wp_debug_mode(false); // Override to false
+
+@ini_set('display_errors', 0); // Recommended to keep errors from showing on live site, let logging handle it
+
+
+function sanitize_input1($input) {
+    $input = sanitize_text_field($input);
+    return str_replace(',', ' ', $input);
 }
 
-function save_data_to_file($data_file, $data) {
-    $data_folder = dirname($data_file);
-    if (!file_exists($data_folder)) {
-        mkdir($data_folder, 0755, true);
+function extract_field_name($field) {
+    if (preg_match('/^([^{]+)/', trim($field), $matches)) {
+        return trim($matches[1]);
     }
-    file_put_contents($data_file, $data);
+    return trim($field);
 }
 
-function update_output_message($fields, $old_values, $new_values, $updated) {
-    $output = '';
-    if ($updated) {
-        $output .= '<p>Your request has been updated. Thank you!</p>';
-        foreach ($fields as $field) {
-            $field = trim($field);
-            $output .= '<p>Old ' . ucfirst($field) . ': ' . esc_html($old_values[$field]) . '</p>';
-            $output .= '<p>New ' . ucfirst($field) . ': ' . esc_html($new_values[$field]) . '</p>';
-        }
-    } else {
-        $output .= '<p>Your request has been added. Thank you!</p>';
+function extract_field_options($field) {
+    if (preg_match('/{([^}]+)}/', $field, $matches)) {
+        $options_str = $matches[1];
+        return array_map('trim', explode(';', $options_str));
     }
-    return $output;
+    return array();
 }
 
 function display_35rl_form($atts) {
@@ -42,105 +41,91 @@ function display_35rl_form($atts) {
         'data_file' => 'sampledata.txt',
     ), $atts);
 
-    $fields = explode(',', $atts['fields']);
+    $fields_raw = explode(',', $atts['fields']);
+    $fields = array();
+
+    foreach ($fields_raw as $field) {
+        $field = trim($field);
+        $fields[] = $field;
+    }
+
     $data_file = plugin_dir_path(__FILE__) . 'data/' . basename($atts['data_file']);
     $output = '';
-    $updated = false;
-    $old_values = array();
-    $new_values = array();
-    $date_time = date('Y-m-d H:i:s'); // Get current date and time
-    $is_admin = current_user_can('manage_options');
+    $is_admin = current_user_can('manage_options');   
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['email'])) {
-        // Verify nonce for security
-        if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], '35rl_form_nonce')) {
-            $output .= '<p>Security check failed. Please try again.</p>';
-            return $output;
-        }
-
-        $email = sanitize_email($_POST['email']);
-        if (!is_email($email)) {
-            $output .= '<p>Invalid email format. Please try again.</p>';
-            return $output;
-        }
-
-        $lines = file_exists($data_file) ? file($data_file, FILE_IGNORE_NEW_LINES) : array();
-        $new_lines = array();
-        
-        // Build the field values for the new/updated entry
-        foreach ($fields as $field) {
-            $field = trim($field);
-            if (isset($_POST[$field])) {
-                $new_values[$field] = sanitize_input($_POST[$field]);
-            }
-        }
-
-        // FIX #4: Only create the data string once and in one place
-        // Build the complete line with fields, email and timestamp
-        $data_parts = array();
-        foreach ($fields as $field) {
-            $field = trim($field);
-            $data_parts[] = isset($new_values[$field]) ? $new_values[$field] : '';
-        }
-        $data_parts[] = $email;
-        $data_parts[] = $date_time;
-        $new_data_line = implode(', ', $data_parts);
-
-        // Process existing data
-        foreach ($lines as $line) {
-            if (empty($line)) {
-                continue;
-            }
-            
-            $line_data = explode(', ', $line);
-            
-            // FIX #3: Find email position dynamically
-            // The email is always followed by the timestamp (which is always the last element)
-            $email_pos = count($line_data) - 2;
-            
-            if ($email_pos >= 0 && $line_data[$email_pos] == $email) {
-                // Found matching email - update entry
-                // Extract old values for the update message
-                foreach ($fields as $index => $field) {
-                    $field = trim($field);
-                    // Make sure we don't go out of bounds
-                    if ($index < $email_pos) {
-                        $old_values[$field] = isset($line_data[$index]) ? $line_data[$index] : '';
-                    }
-                }
-                $old_values['email'] = $email;
-                
-                $new_lines[] = $new_data_line;
-                $updated = true;
-            } else {
-                // Not matching email - keep the original line
-                $new_lines[] = $line;
-            }
-        }
-
-        // If not an update, add as new entry
-        if (!$updated) {
-            $new_lines[] = $new_data_line;
-        }
-
-        save_data_to_file($data_file, implode("\n", $new_lines));
-        $output .= update_output_message($fields, $old_values, $new_values, $updated);
+        // Data saving is now handled by save_data.php
     } else {
-        $output .= '<form method="post">';
+
+        // Live display of form data
+		    if ($is_admin) {
+                $output .= '<p><small>Data file: ' . esc_html($data_file) . '</small></p>';
+            }
+        If (CUSTOM_DEBUG) $output .= '<div id="formDataDisplay"></div>';
+
+        $output .= '<form id="dataEntry" method="post" action="' . plugin_dir_url(__FILE__) . 'save_data.php">';
+        $output .= '<input type="hidden" name="fields" value="' . esc_attr(json_encode($fields)) . '">';
+        $output .= '<input type="hidden" name="redirect_url" value="' . esc_url($_SERVER['REQUEST_URI']) . '">';
+		 $output .= '<input type="hidden" name="data_file" value="' . esc_attr($atts['data_file']) . '">'; 
+
+
+
         foreach ($fields as $field) {
-            $field = trim($field);
-            $output .= '<label for="' . $field . '">' . ucfirst($field) . ':</label>';
-            $output .= '<input type="text" id="' . $field . '" name="' . $field . '" required><br>';
+            $field_name = extract_field_name($field);
+            $field_options = extract_field_options($field);
+
+            $output .= '<label for="' . esc_attr($field_name) . '">' . ucfirst($field_name) . ':</label>';
+
+            if (!empty($field_options)) {
+                $output .= '<select id="' . esc_attr($field_name) . '" name="' . esc_attr($field_name) . '" required>';
+                $output .= '<option value="" disabled selected>Select ' . ucfirst($field_name) . '</option>';
+                foreach ($field_options as $option) {
+                    $output .= '<option value="' . esc_attr($option) . '">' . esc_html($option) . '</option>';
+                }
+                $output .= '</select><br>';
+            } else {
+                $output .= '<input type="text" id="' . esc_attr($field_name) . '" name="' . esc_attr($field_name) . '" required><br>';
+            }
         }
-        
+
         $output .= '<label for="email">Your email:</label>';
         $output .= '<input type="email" id="email" name="email" required><br>';
-        
-        // Add nonce field for security
+
         $output .= wp_nonce_field('35rl_form_nonce', '_wpnonce', true, false);
-        
+
         $output .= '<input type="submit" value="Submit">';
         $output .= '</form>';
+		  if (WP_DEBUG) {
+
+				// JavaScript for live display // Only show if 
+				//   TODO:   Would be nice to show the NAME TAG labels
+				$output .= '<script>
+    (function() { // Wrap in an IIFE to create a local scope
+        const form = document.getElementById("dataEntry");
+        const formDataDisplay = document.getElementById("formDataDisplay");
+
+        if (form && formDataDisplay) { // Check if elements exist before adding listeners.
+            function updateFormDataDisplay() {
+                const formData = {};
+                const formElements = form.elements;
+
+                for (let i = 0; i < formElements.length; i++) {
+                    const element = formElements[i];
+                    if (element.name) {
+                        formData[element.name] = element.value;
+                    }
+                }
+
+                formDataDisplay.innerHTML = "<pre>" + JSON.stringify(formData, null, 2) + "</pre>";
+            }
+
+            form.addEventListener("input", updateFormDataDisplay);
+            form.addEventListener("change", updateFormDataDisplay);
+            updateFormDataDisplay();
+        }
+    })();
+</script>';
+		  }
     }
 
     if (file_exists($data_file)) {
@@ -171,38 +156,37 @@ function display_35rl_form($atts) {
             $output .= '<tr>';
             $output .= '<th>Date and Time</th>';
             foreach ($fields as $field) {
-                $output .= '<th>' . ucfirst(trim($field)) . '</th>';
+                $field_name = extract_field_name($field);
+                $output .= '<th>' . ucfirst($field_name) . '</th>';
             }
             if ($is_admin) {
                 $output .= '<th>Email</th>';
             }
             $output .= '</tr>';
             foreach ($entries as $entry) {
-                // FIX #3: Find email and timestamp positions dynamically
                 $timestamp_pos = array_key_last($entry);
                 $email_pos = $timestamp_pos - 1;
-                
+
                 $output .= '<tr>';
-                $output .= '<td>' . esc_html($entry[$timestamp_pos]) . '</td>'; // Display date and time
-                
-                // Display fields
-                foreach ($fields as $key => $field) {
-                    if ($key < count($entry) - 2) { // Exclude email and timestamp
-                        $output .= '<td>' . esc_html($entry[$key]) . '</td>';
+                $output .= '<td>' . esc_html($entry[$timestamp_pos]) . '</td>';
+
+                $field_index = 0;
+                foreach ($fields as $field) {
+                    $field_name = extract_field_name($field);
+                    if ($field_index < count($entry) - 2) {
+                        $output .= '<td>' . esc_html(isset($entry[$field_index]) ? $entry[$field_index] : '') . '</td>';
                     }
+                    $field_index++;
                 }
-                
-                // Display email for admins
+
                 if ($is_admin && $email_pos >= 0) {
                     $output .= '<td>' . esc_html($entry[$email_pos]) . '</td>';
                 }
-                
+
                 $output .= '</tr>';
             }
             $output .= '</table>';
-            if ($is_admin) {
-                $output .= '<p>Data file: ' . esc_html($data_file) . '</p>';
-            }
+        
         }
     }
 
